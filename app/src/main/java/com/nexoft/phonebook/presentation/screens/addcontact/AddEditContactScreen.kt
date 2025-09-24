@@ -73,10 +73,13 @@ fun AddEditContactScreen(
         contract = ActivityResultContracts.TakePicturePreview()
     ) { bitmap ->
         bitmap?.let {
-            // Convert bitmap to file
-            val file = ImageHelper.createTempImageFile(context)
-            // Save bitmap to file logic here
-            viewModel.onEvent(AddEditContactEvent.OnImageSelected(file))
+            scope.launch {
+                val file = ImageHelper.createTempImageFile(context)
+                val saved = ImageHelper.saveBitmapToFile(it, file)
+                if (saved) {
+                    viewModel.onEvent(AddEditContactEvent.OnImageSelected(file))
+                }
+            }
         }
     }
 

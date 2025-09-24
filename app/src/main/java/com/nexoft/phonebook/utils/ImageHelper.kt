@@ -92,4 +92,17 @@ object ImageHelper {
         val timestamp = System.currentTimeMillis()
         return File(context.cacheDir, "camera_photo_$timestamp.jpg")
     }
+
+    fun saveBitmapToFile(bitmap: Bitmap, file: File): Boolean {
+        return try {
+            val outputStream = FileOutputStream(file)
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 90, outputStream)
+            outputStream.flush()
+            outputStream.close()
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
 }

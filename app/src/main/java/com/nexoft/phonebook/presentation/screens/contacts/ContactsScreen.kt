@@ -14,7 +14,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.nexoft.phonebook.presentation.components.SwipeRefreshCompat
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.nexoft.phonebook.presentation.components.*
 import com.nexoft.phonebook.presentation.viewmodel.ContactsEvent
@@ -115,8 +115,8 @@ fun ContactsScreen(
             )
 
             // Content
-            SwipeRefresh(
-                state = rememberSwipeRefreshState(state.isRefreshing),
+            SwipeRefreshCompat(
+                refreshing = state.isRefreshing,
                 onRefresh = { viewModel.onEvent(ContactsEvent.RefreshContacts) }
             ) {
                 when {

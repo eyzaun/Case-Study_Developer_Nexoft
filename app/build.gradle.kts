@@ -1,23 +1,25 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.ksp)
 }
 
 android {
     namespace = "com.nexoft.phonebook"
-    compileSdk = 35  // 34'ten 35'e değiştirin
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "com.nexoft.phonebook"
         minSdk = 24
-        targetSdk = 35  // 34'ten 35'e değiştirin
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        vectorDrawables {
+            useSupportLibrary = true
+        }
     }
 
     buildTypes {
@@ -39,6 +41,14 @@ android {
     buildFeatures {
         compose = true
     }
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.4"
+    }
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
+    }
 }
 
 dependencies {
@@ -53,6 +63,9 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+    // Material (M2) and extended icons if needed by components
+    implementation(libs.androidx.compose.material)
+    implementation(libs.androidx.compose.material.icons.extended)
 
     // Navigation
     implementation(libs.androidx.navigation.compose)
@@ -82,8 +95,11 @@ dependencies {
     // Coil
     implementation(libs.coil.compose)
 
-    // Permissions
+    // Accompanist
     implementation(libs.accompanist.permissions)
+
+    // Palette for color extraction
+    implementation(libs.palette)
 
     // Testing
     testImplementation(libs.junit)
