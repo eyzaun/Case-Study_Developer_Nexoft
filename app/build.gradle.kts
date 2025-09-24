@@ -70,6 +70,9 @@ dependencies {
     // Navigation
     implementation(libs.androidx.navigation.compose)
 
+    // Lifecycle Compose (collectAsStateWithLifecycle)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+
     // Hilt
     implementation(libs.hilt.android)
     implementation(libs.hilt.navigation.compose)
@@ -97,6 +100,7 @@ dependencies {
 
     // Accompanist
     implementation(libs.accompanist.permissions)
+    implementation(libs.accompanist.swiperefresh)
 
     // Palette for color extraction
     implementation(libs.palette)

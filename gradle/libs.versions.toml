@@ -1,7 +1,7 @@
 [versions]
 agp = "8.2.0"
 kotlin = "1.9.20"
-compose-bom = "2024.01.00"
+compose-bom = "2023.10.01"
 compose-compiler = "1.5.4"
 hilt = "2.48"
 retrofit = "2.9.0"
@@ -18,6 +18,7 @@ accompanist = "0.32.0"
 # Core
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version = "1.12.0" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle" }
+androidx-lifecycle-runtime-compose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "lifecycle" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version = "1.8.2" }
 
 # Compose
@@ -62,6 +63,7 @@ coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coi
 
 # Accompanist
 accompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanist" }
+accompanist-swiperefresh = { group = "com.google.accompanist", name = "accompanist-swiperefresh", version.ref = "accompanist" }
 
 # Palette
 palette = { group = "androidx.palette", name = "palette-ktx", version = "1.0.0" }

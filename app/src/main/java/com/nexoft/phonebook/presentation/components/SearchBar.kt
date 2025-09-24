@@ -49,7 +49,7 @@ fun SearchBar(
                 .height(Dimens.searchBarHeight)
                 .background(
                     color = SearchBarGray,
-                    shape = Shapes.searchBarShape
+                    shape = com.nexoft.phonebook.ui.theme.Shapes.searchBarShape
                 )
                 .clickable {
                     onSearchClick()

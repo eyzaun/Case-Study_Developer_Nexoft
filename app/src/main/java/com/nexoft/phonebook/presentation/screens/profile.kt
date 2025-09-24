@@ -27,7 +27,8 @@ import com.nexoft.phonebook.presentation.viewmodel.ProfileViewModel
 import com.nexoft.phonebook.ui.theme.*
 import com.nexoft.phonebook.utils.ColorExtractor
 import com.nexoft.phonebook.utils.DeviceContactsHelper
-import com.nexoft.phonebook.utils.Extensions.shadowWithColor
+import com.nexoft.phonebook.utils.shadowWithColor
+import androidx.compose.ui.unit.dp
 import com.nexoft.phonebook.utils.PermissionHelper
 import com.nexoft.phonebook.utils.PhoneNumberFormatter
 import kotlinx.coroutines.launch
@@ -40,6 +41,8 @@ fun ProfileScreen(
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val contact = state.contact
+    val errorMessage = state.error
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -49,8 +52,8 @@ fun ProfileScreen(
     )
 
     // Extract dominant color from image
-    LaunchedEffect(state.contact?.profileImageUrl) {
-        state.contact?.profileImageUrl?.let { imageUrl ->
+    LaunchedEffect(contact?.profileImageUrl) {
+        contact?.profileImageUrl?.let { imageUrl ->
             val dominantColor = ColorExtractor.extractDominantColor(context, imageUrl)
             viewModel.onEvent(ProfileEvent.OnDominantColorExtracted(dominantColor))
         }
@@ -107,14 +110,14 @@ fun ProfileScreen(
                     CircularProgressIndicator(color = Green500)
                 }
             }
-            state.contact != null -> {
+            contact != null -> {
                 ProfileContent(
-                    contact = state.contact,
+                    contact = contact,
                     dominantColor = state.dominantColor,
                     onSaveToDeviceClick = {
                         if (contactPermissions.allPermissionsGranted) {
                             scope.launch {
-                                DeviceContactsHelper.saveContactToDevice(context, state.contact)
+                                DeviceContactsHelper.saveContactToDevice(context, contact)
                                 viewModel.onEvent(ProfileEvent.OnSaveToDeviceClick)
                             }
                         } else {
@@ -124,13 +127,13 @@ fun ProfileScreen(
                     modifier = Modifier.padding(paddingValues)
                 )
             }
-            state.error != null -> {
+            errorMessage != null -> {
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = state.error,
+                        text = errorMessage,
                         style = MaterialTheme.typography.bodyLarge,
                         color = RedDelete
                     )
@@ -141,7 +144,7 @@ fun ProfileScreen(
         // Delete Confirmation Bottom Sheet
         if (state.showDeleteDialog) {
             DeleteConfirmationBottomSheet(
-                contactName = state.contact?.fullName ?: "",
+                contactName = contact?.fullName ?: "",
                 onConfirm = { viewModel.onEvent(ProfileEvent.OnDeleteConfirm) },
                 onDismiss = { viewModel.onEvent(ProfileEvent.OnDeleteDismiss) }
             )
@@ -249,8 +252,8 @@ private fun ProfileContent(
                             color = dominantColor,
                             alpha = 0.4f,
                             borderRadius = Dimens.radiusCircle,
-                            shadowRadius = androidx.compose.ui.unit.dp(20),
-                            offsetY = androidx.compose.ui.unit.dp(10)
+                            shadowRadius = 20.dp,
+                            offsetY = 10.dp
                         )
                     } else {
                         Modifier
@@ -353,7 +356,7 @@ private fun DeleteConfirmationBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         containerColor = White,
-        shape = Shapes.bottomSheetShape
+        shape = com.nexoft.phonebook.ui.theme.Shapes.bottomSheetShape
     ) {
         Column(
             modifier = Modifier

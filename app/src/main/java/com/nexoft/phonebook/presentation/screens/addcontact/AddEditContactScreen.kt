@@ -9,6 +9,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -25,6 +26,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.airbnb.lottie.compose.*
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -38,7 +40,7 @@ import com.nexoft.phonebook.utils.PermissionHelper
 import kotlinx.coroutines.launch
 import java.io.File
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun AddEditContactScreen(
     onNavigateBack: () -> Unit,
@@ -279,6 +281,7 @@ fun AddEditContactScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ImagePickerBottomSheet(
     onCameraClick: () -> Unit,
@@ -288,7 +291,7 @@ private fun ImagePickerBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         containerColor = White,
-        shape = Shapes.bottomSheetShape
+        shape = com.nexoft.phonebook.ui.theme.Shapes.bottomSheetShape
     ) {
         Column(
             modifier = Modifier
