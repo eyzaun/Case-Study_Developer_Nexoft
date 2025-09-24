@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -43,12 +44,14 @@ import java.io.File
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun AddEditContactScreen(
-    onNavigateBack: () -> Unit,
+    onNavigateBack: (String) -> Unit,
     viewModel: AddEditContactViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val addedText = stringResource(id = R.string.toast_added)
+    val updatedText = stringResource(id = R.string.toast_updated)
 
     val cameraPermissions = rememberMultiplePermissionsState(
         permissions = PermissionHelper.CAMERA_PERMISSION.toList()
@@ -85,10 +88,11 @@ fun AddEditContactScreen(
         }
     }
 
-    // Handle save success
+    // Handle save success -> briefly show toast and then navigate back
     LaunchedEffect(state.saveSuccess) {
         if (state.saveSuccess) {
-            onNavigateBack()
+            val message = if (state.isEditMode) updatedText else addedText
+            onNavigateBack(message)
         }
     }
 
@@ -96,16 +100,13 @@ fun AddEditContactScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        text = if (state.isEditMode) "Edit Contact" else "New Contact",
-                        style = MaterialTheme.typography.titleLarge
-                    )
+                    Text(text = if (state.isEditMode) stringResource(id = R.string.edit_contact) else stringResource(id = R.string.new_contact), style = MaterialTheme.typography.titleLarge)
                 },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
+                    IconButton(onClick = { onNavigateBack("") }) {
                         Icon(
                             imageVector = Icons.Default.Close,
-                            contentDescription = "Back"
+                            contentDescription = null
                         )
                     }
                 },
@@ -122,10 +123,7 @@ fun AddEditContactScreen(
                     containerColor = Green500,
                     contentColor = White
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Check,
-                        contentDescription = "Save"
-                    )
+                    Icon(imageVector = Icons.Default.Check, contentDescription = null)
                 }
             }
         },
@@ -156,7 +154,7 @@ fun AddEditContactScreen(
                         state.profileImageFile != null -> {
                             AsyncImage(
                                 model = state.profileImageFile,
-                                contentDescription = "Profile",
+                                contentDescription = stringResource(id = R.string.select_photo),
                                 modifier = Modifier.fillMaxSize(),
                                 contentScale = ContentScale.Crop
                             )
@@ -164,7 +162,7 @@ fun AddEditContactScreen(
                         state.profileImageUrl != null -> {
                             AsyncImage(
                                 model = state.profileImageUrl,
-                                contentDescription = "Profile",
+                                contentDescription = stringResource(id = R.string.select_photo),
                                 modifier = Modifier.fillMaxSize(),
                                 contentScale = ContentScale.Crop
                             )
@@ -172,7 +170,7 @@ fun AddEditContactScreen(
                         else -> {
                             Icon(
                                 imageVector = Icons.Default.CameraAlt,
-                                contentDescription = "Add Photo",
+                                contentDescription = stringResource(id = R.string.select_photo),
                                 tint = Gray500,
                                 modifier = Modifier.size(Dimens.iconSizeLarge)
                             )
@@ -186,7 +184,7 @@ fun AddEditContactScreen(
                 OutlinedTextField(
                     value = state.firstName,
                     onValueChange = { viewModel.onEvent(AddEditContactEvent.OnFirstNameChange(it)) },
-                    label = { Text("First Name") },
+                    label = { Text(stringResource(id = R.string.first_name)) },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Person,
@@ -210,7 +208,7 @@ fun AddEditContactScreen(
                 OutlinedTextField(
                     value = state.lastName,
                     onValueChange = { viewModel.onEvent(AddEditContactEvent.OnLastNameChange(it)) },
-                    label = { Text("Last Name") },
+                    label = { Text(stringResource(id = R.string.last_name)) },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Person,
@@ -234,7 +232,7 @@ fun AddEditContactScreen(
                 OutlinedTextField(
                     value = state.phoneNumber,
                     onValueChange = { viewModel.onEvent(AddEditContactEvent.OnPhoneNumberChange(it)) },
-                    label = { Text("Phone Number") },
+                    label = { Text(stringResource(id = R.string.phone_number)) },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Phone,
@@ -273,12 +271,10 @@ fun AddEditContactScreen(
                 )
             }
 
-            // Lottie Animation
-            AnimatedVisibility(visible = state.showLottieAnimation) {
-                LottieAnimationDialog()
-            }
+            // Removed inline Lottie dialog to avoid double animations.
         }
     }
+
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -299,7 +295,7 @@ private fun ImagePickerBottomSheet(
                 .padding(Dimens.paddingMedium)
         ) {
             Text(
-                text = "Select Photo",
+                text = stringResource(id = R.string.select_photo),
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(bottom = Dimens.paddingMedium)
             )
@@ -313,14 +309,11 @@ private fun ImagePickerBottomSheet(
             ) {
                 Icon(
                     imageVector = Icons.Default.CameraAlt,
-                    contentDescription = "Camera",
+                    contentDescription = null,
                     tint = Gray700
                 )
                 Spacer(modifier = Modifier.width(Dimens.paddingMedium))
-                Text(
-                    text = "Take Photo",
-                    style = MaterialTheme.typography.bodyLarge
-                )
+                Text(text = stringResource(id = R.string.take_photo), style = MaterialTheme.typography.bodyLarge)
             }
 
             Row(
@@ -332,14 +325,11 @@ private fun ImagePickerBottomSheet(
             ) {
                 Icon(
                     imageVector = Icons.Default.PhotoLibrary,
-                    contentDescription = "Gallery",
+                    contentDescription = null,
                     tint = Gray700
                 )
                 Spacer(modifier = Modifier.width(Dimens.paddingMedium))
-                Text(
-                    text = "Choose from Gallery",
-                    style = MaterialTheme.typography.bodyLarge
-                )
+                Text(text = stringResource(id = R.string.choose_from_gallery), style = MaterialTheme.typography.bodyLarge)
             }
 
             Spacer(modifier = Modifier.height(Dimens.paddingLarge))
@@ -347,31 +337,7 @@ private fun ImagePickerBottomSheet(
     }
 }
 
-@Composable
-private fun LottieAnimationDialog() {
-    Dialog(onDismissRequest = {}) {
-        Box(
-            modifier = Modifier
-                .size(200.dp)
-                .background(White, shape = RoundedCornerShape(Dimens.radiusLarge)),
-            contentAlignment = Alignment.Center
-        ) {
-            val composition by rememberLottieComposition(
-                LottieCompositionSpec.RawRes(R.raw.success_animation)
-            )
-            val progress by animateLottieCompositionAsState(
-                composition = composition,
-                iterations = 1
-            )
-
-            LottieAnimation(
-                composition = composition,
-                progress = { progress },
-                modifier = Modifier.size(150.dp)
-            )
-        }
-    }
-}
+// Removed LottieAnimationDialog, success animation is shown on the dedicated screen now.
 
 private fun canSave(state: com.nexoft.phonebook.presentation.viewmodel.AddEditContactState): Boolean {
     return state.firstName.isNotBlank() &&

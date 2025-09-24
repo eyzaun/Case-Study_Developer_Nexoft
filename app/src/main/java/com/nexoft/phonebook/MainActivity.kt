@@ -14,6 +14,7 @@ import androidx.navigation.navArgument
 import androidx.navigation.NavType
 import com.nexoft.phonebook.presentation.navigation.Screen
 import com.nexoft.phonebook.presentation.screens.addcontact.AddEditContactScreen
+import com.nexoft.phonebook.presentation.screens.addcontact.AddSuccessScreen
 import com.nexoft.phonebook.presentation.screens.contacts.ContactsScreen
 import com.nexoft.phonebook.presentation.screens.profile.ProfileScreen
 import com.nexoft.phonebook.ui.theme.PhoneBookTheme
@@ -47,7 +48,8 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onNavigateToEditContact = { contactId ->
                                     navController.navigate(Screen.EditContact.createRoute(contactId))
-                                }
+                                },
+                                navController = navController
                             )
                         }
 
@@ -58,10 +60,31 @@ class MainActivity : ComponentActivity() {
                                     type = NavType.StringType
                                 }
                             )
-                        ) {
+                        ) { backStackEntry ->
+                            val contactIdArg = backStackEntry.arguments?.getString("contactId")
+                            val isAddMode = contactIdArg == "new"
                             AddEditContactScreen(
-                                onNavigateBack = {
-                                    navController.navigateUp()
+                                onNavigateBack = { message ->
+                                    // If message empty -> treat as cancel/back
+                                    if (message.isBlank()) {
+                                        navController.navigateUp()
+                                    } else {
+                                        if (isAddMode) {
+                                            // For add success, go to success screen first (no bottom toast for add)
+                                            navController.navigate("add_success") {
+                                                launchSingleTop = true
+                                            }
+                                            // Do NOT set toast for add flow
+                                        } else {
+                                            // For edit success, set toast on Contacts entry, then pop back to it
+                                            val contactsEntry = try {
+                                                navController.getBackStackEntry(com.nexoft.phonebook.presentation.navigation.Screen.Contacts.route)
+                                            } catch (_: Exception) { null }
+                                            contactsEntry?.savedStateHandle?.set("toast_message", message)
+                                            // Pop back stack to Contacts (removes Edit and Profile if present)
+                                            navController.popBackStack(route = com.nexoft.phonebook.presentation.navigation.Screen.Contacts.route, inclusive = false)
+                                        }
+                                    }
                                 }
                             )
                         }
@@ -76,11 +99,25 @@ class MainActivity : ComponentActivity() {
                         ) { backStackEntry ->
                             val contactId = backStackEntry.arguments?.getString("contactId") ?: ""
                             ProfileScreen(
-                                onNavigateBack = {
+                                onNavigateBack = { message ->
+                                    if (!message.isNullOrBlank()) {
+                                        navController.previousBackStackEntry?.savedStateHandle?.set("toast_message", message)
+                                    }
                                     navController.navigateUp()
                                 },
                                 onNavigateToEdit = { id ->
                                     navController.navigate(Screen.EditContact.createRoute(id))
+                                }
+                            )
+                        }
+
+                        // Add success full-screen confirmation
+                        composable(route = "add_success") {
+                            AddSuccessScreen(
+                                onFinish = {
+                                    // Pop success and add screen, land on contacts
+                                    navController.popBackStack()
+                                    navController.popBackStack()
                                 }
                             )
                         }

@@ -19,7 +19,9 @@ data class ContactsState(
     val isSearchActive: Boolean = false,
     val error: String? = null,
     val toastMessage: String? = null,
-    val isRefreshing: Boolean = false
+    val isRefreshing: Boolean = false,
+    val pendingDelete: Contact? = null,
+    val showDeleteConfirm: Boolean = false
 )
 
 sealed class ContactsEvent {
@@ -30,6 +32,8 @@ sealed class ContactsEvent {
     object OnSearchDismiss : ContactsEvent()
     data class OnSearchHistoryClick(val query: String) : ContactsEvent()
     data class DeleteContact(val contact: Contact) : ContactsEvent()
+    data class ConfirmDelete(val confirm: Boolean) : ContactsEvent()
+    object DismissDeleteConfirm : ContactsEvent()
     data class OnContactClick(val contact: Contact) : ContactsEvent()
     object OnAddContactClick : ContactsEvent()
     object ClearError : ContactsEvent()
@@ -62,7 +66,9 @@ class ContactsViewModel @Inject constructor(
             is ContactsEvent.OnSearchClick -> onSearchClick()
             is ContactsEvent.OnSearchDismiss -> onSearchDismiss()
             is ContactsEvent.OnSearchHistoryClick -> onSearchHistoryClick(event.query)
-            is ContactsEvent.DeleteContact -> deleteContact(event.contact)
+            is ContactsEvent.DeleteContact -> promptDelete(event.contact)
+            is ContactsEvent.ConfirmDelete -> handleDeleteConfirm(event.confirm)
+            is ContactsEvent.DismissDeleteConfirm -> dismissDelete()
             is ContactsEvent.OnContactClick -> { /* Handled by navigation */ }
             is ContactsEvent.OnAddContactClick -> { /* Handled by navigation */ }
             is ContactsEvent.ClearError -> clearError()
@@ -120,6 +126,45 @@ class ContactsViewModel @Inject constructor(
         }
     }
 
+    private fun promptDelete(contact: Contact) {
+        _state.update { it.copy(pendingDelete = contact, showDeleteConfirm = true) }
+    }
+
+    private fun dismissDelete() {
+        _state.update { it.copy(pendingDelete = null, showDeleteConfirm = false) }
+    }
+
+    private fun handleDeleteConfirm(confirm: Boolean) {
+        val contact = _state.value.pendingDelete ?: return
+        if (!confirm) {
+            dismissDelete()
+            return
+        }
+        viewModelScope.launch {
+            deleteContactUseCase(contact.id).fold(
+                onSuccess = {
+                    _state.update {
+                        it.copy(
+                            toastMessage = "User is deleted!",
+                            showDeleteConfirm = false,
+                            pendingDelete = null
+                        )
+                    }
+                    refreshContacts()
+                },
+                onFailure = { exception ->
+                    _state.update {
+                        it.copy(
+                            showDeleteConfirm = false,
+                            pendingDelete = null,
+                            error = exception.message
+                        )
+                    }
+                }
+            )
+        }
+    }
+
     private fun onSearchQueryChange(query: String) {
         _state.update { it.copy(searchQuery = query) }
 
@@ -169,23 +214,7 @@ class ContactsViewModel @Inject constructor(
         onSearchQueryChange(query)
     }
 
-    private fun deleteContact(contact: Contact) {
-        viewModelScope.launch {
-            deleteContactUseCase(contact.id).fold(
-                onSuccess = {
-                    _state.update {
-                        it.copy(toastMessage = "${contact.fullName} silindi")
-                    }
-                    loadContacts()
-                },
-                onFailure = { exception ->
-                    _state.update {
-                        it.copy(error = exception.message)
-                    }
-                }
-            )
-        }
-    }
+    // Old direct delete removed in favor of confirmation flow
 
     private fun checkDeviceContacts() {
         viewModelScope.launch {

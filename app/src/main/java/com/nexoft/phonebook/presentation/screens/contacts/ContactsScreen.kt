@@ -11,15 +11,21 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.ui.text.style.TextAlign
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.material.icons.filled.Delete
 import com.nexoft.phonebook.presentation.components.SwipeRefreshCompat
 import com.nexoft.phonebook.presentation.components.*
 import com.nexoft.phonebook.presentation.viewmodel.ContactsEvent
 import com.nexoft.phonebook.presentation.viewmodel.ContactsViewModel
 import com.nexoft.phonebook.ui.theme.*
 import kotlinx.coroutines.launch
+import androidx.navigation.NavHostController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -27,23 +33,53 @@ fun ContactsScreen(
     onNavigateToAddContact: () -> Unit,
     onNavigateToProfile: (String) -> Unit,
     onNavigateToEditContact: (String) -> Unit,
-    viewModel: ContactsViewModel = hiltViewModel()
+    viewModel: ContactsViewModel = hiltViewModel(),
+    navController: NavHostController
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    var bottomToastMessage by remember { mutableStateOf<String?>(null) }
+    var showBottomToast by remember { mutableStateOf(false) }
+    val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
+    val crossScreenToastFlow = remember(savedStateHandle) {
+        savedStateHandle?.getStateFlow("toast_message", "")
+    }
+    val crossScreenToast = crossScreenToastFlow?.collectAsStateWithLifecycle(initialValue = "")?.value ?: ""
+    val lifecycleOwner = LocalLifecycleOwner.current
 
-    // Show toast messages
+    // Refresh when screen resumes (returning from add/edit/profile)
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.onEvent(ContactsEvent.RefreshContacts)
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
+    // Auto refresh on enter
+    LaunchedEffect(Unit) {
+        viewModel.onEvent(ContactsEvent.RefreshContacts)
+    }
+
+    // Show bottom toast messages (success like delete)
     LaunchedEffect(state.toastMessage) {
         state.toastMessage?.let { message ->
-            scope.launch {
-                snackbarHostState.showSnackbar(
-                    message = message,
-                    duration = SnackbarDuration.Short
-                )
-                viewModel.onEvent(ContactsEvent.ClearToast)
-            }
+            bottomToastMessage = message
+            showBottomToast = true
+            viewModel.onEvent(ContactsEvent.ClearToast)
+        }
+    }
+
+    // Handle cross-screen toasts coming from Add/Edit or Profile
+    LaunchedEffect(crossScreenToast) {
+        if (crossScreenToast.isNotBlank()) {
+            bottomToastMessage = crossScreenToast
+            showBottomToast = true
+            savedStateHandle?.set("toast_message", "")
         }
     }
 
@@ -64,10 +100,7 @@ fun ContactsScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        text = "Contacts",
-                        style = MaterialTheme.typography.titleLarge
-                    )
+                    Text(text = stringResource(id = com.nexoft.phonebook.R.string.contacts_title), style = MaterialTheme.typography.titleLarge)
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = White,
@@ -83,10 +116,7 @@ fun ContactsScreen(
                 contentColor = White,
                 modifier = Modifier.size(Dimens.fabSize)
             ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Add Contact"
-                )
+                Icon(imageVector = Icons.Default.Add, contentDescription = stringResource(id = com.nexoft.phonebook.R.string.add_contact))
             }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -128,13 +158,7 @@ fun ContactsScreen(
                         }
                     }
                     state.contacts.isEmpty() -> {
-                        EmptyState(
-                            type = if (state.searchQuery.isNotEmpty()) {
-                                EmptyStateType.NO_SEARCH_RESULTS
-                            } else {
-                                EmptyStateType.NO_CONTACTS
-                            }
-                        )
+                        EmptyState(type = if (state.searchQuery.isNotEmpty()) EmptyStateType.NO_SEARCH_RESULTS else EmptyStateType.NO_CONTACTS)
                     }
                     else -> {
                         ContactsList(
@@ -153,6 +177,32 @@ fun ContactsScreen(
                 }
             }
         }
+
+        if (state.showDeleteConfirm) {
+            AlertDialog(
+                onDismissRequest = { viewModel.onEvent(ContactsEvent.DismissDeleteConfirm) },
+                icon = { Icon(imageVector = Icons.Default.Delete, contentDescription = null, tint = RedDelete) },
+                title = { Text(stringResource(id = com.nexoft.phonebook.R.string.confirm_delete_title)) },
+                text = { Text(stringResource(id = com.nexoft.phonebook.R.string.confirm_delete_message)) },
+                confirmButton = {
+                    TextButton(onClick = { viewModel.onEvent(ContactsEvent.ConfirmDelete(true)) }) {
+                        Text(stringResource(id = com.nexoft.phonebook.R.string.yes))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { viewModel.onEvent(ContactsEvent.ConfirmDelete(false)) }) {
+                        Text(stringResource(id = com.nexoft.phonebook.R.string.no))
+                    }
+                }
+            )
+        }
+
+        // Bottom toast overlay
+        com.nexoft.phonebook.presentation.components.BottomToast(
+            message = bottomToastMessage ?: "",
+            visible = showBottomToast && !bottomToastMessage.isNullOrBlank(),
+            onDismiss = { showBottomToast = false }
+        )
     }
 }
 

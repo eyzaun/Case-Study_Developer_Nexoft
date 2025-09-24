@@ -1,4 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Phone Book</string>
+    <!-- Common -->
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
+    <string name="edit">Edit</string>
+    <string name="search_placeholder">Search by name</string>
+    <!-- Contacts -->
+    <string name="contacts_title">Contacts</string>
+    <string name="add_contact">Add Contact</string>
+    <string name="no_contacts">No Contacts</string>
+    <string name="no_contacts_subtitle">Contacts you have added will appear here.</string>
+    <string name="no_results">No Results</string>
+    <string name="no_results_subtitle">The user you are looking for could not be found.</string>
+    <string name="tap_plus_to_add">Create New Contact</string>
+    <string name="confirm_delete_title">Delete Contact</string>
+    <string name="confirm_delete_message">Are you sure you want to delete this contact?</string>
+    <string name="deleted_message">%1$s deleted</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <!-- Add/Edit -->
+    <string name="new_contact">New Contact</string>
+    <string name="edit_contact">Edit Contact</string>
+    <string name="first_name">First Name</string>
+    <string name="first_name_required">First name is required</string>
+    <string name="last_name">Last Name</string>
+    <string name="last_name_required">Last name is required</string>
+    <string name="phone_number">Phone Number</string>
+    <string name="phone_required">Phone number is required</string>
+    <string name="phone_invalid">Please enter a valid phone number</string>
+    <string name="select_photo">Select Photo</string>
+    <string name="take_photo">Take Photo</string>
+    <string name="choose_from_gallery">Choose from Gallery</string>
+    <!-- Profile -->
+    <string name="save_to_phone">Save to My Phone Contact</string>
+    <string name="saved_in_device">This contact is already saved your phone.</string>
+    <string name="saved_to_device_message">%1$s saved to device</string>
+    
+    <!-- Add Success Screen -->
+    <string name="add_success_title">All Done!</string>
+    <string name="add_success_subtitle">New contact saved 🎉</string>
+    
+    <!-- Bottom Toast Messages -->
+    <string name="toast_added">User is added!</string>
+    <string name="toast_updated">User is updated!</string>
+    <string name="toast_deleted">User is deleted!</string>
+    <string name="toast_added_to_phone">User is added to your phone!</string>
 </resources>

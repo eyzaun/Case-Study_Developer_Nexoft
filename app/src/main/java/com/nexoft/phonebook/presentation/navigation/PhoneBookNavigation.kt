@@ -17,6 +17,7 @@ sealed class Screen(val route: String) {
     object Profile : Screen("profile/{contactId}") {
         fun createRoute(contactId: String) = "profile/$contactId"
     }
+    object AddSuccess : Screen("add_success")
 }
 
 @Composable
@@ -28,7 +29,7 @@ fun PhoneBookNavGraph(
         startDestination = Screen.Contacts.route
     ) {
         composable(route = Screen.Contacts.route) {
-            // ContactsScreen will be implemented
+            // kept empty; NavHost in MainActivity drives screens
         }
 
         composable(
@@ -39,7 +40,7 @@ fun PhoneBookNavGraph(
                 }
             )
         ) {
-            // AddEditContactScreen will be implemented
+            // kept empty in this file
         }
 
         composable(
@@ -50,7 +51,7 @@ fun PhoneBookNavGraph(
                 }
             )
         ) {
-            // ProfileScreen will be implemented
+            // kept empty in this file
         }
     }
 }

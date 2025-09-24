@@ -42,11 +42,13 @@ object PhoneNumberFormatter {
             .replace("-", "")
             .replace("(", "")
             .replace(")", "")
+            .let { if (it.startsWith("+90")) it.replaceFirst("+90", "0") else it }
             .replace("+", "")
     }
 
     fun isValidPhoneNumber(phoneNumber: String): Boolean {
-        val cleaned = phoneNumber.filter { it.isDigit() }
-        return cleaned.length >= 10
+        val filtered = phoneNumber.filterIndexed { index, c -> c.isDigit() || (index == 0 && c == '+') }
+        val digits = filtered.filter { it.isDigit() }
+        return digits.length >= 10
     }
 }

@@ -64,7 +64,7 @@ fun SearchBar(
             ) {
                 Icon(
                     imageVector = Icons.Default.Search,
-                    contentDescription = "Search",
+                    contentDescription = null,
                     tint = Gray500,
                     modifier = Modifier.size(Dimens.iconSizeMedium)
                 )
@@ -100,7 +100,7 @@ fun SearchBar(
                         Box {
                             if (query.isEmpty()) {
                                 Text(
-                                    text = "İsim veya numara arayın",
+                                    text = androidx.compose.ui.res.stringResource(id = com.nexoft.phonebook.R.string.search_placeholder),
                                     style = MaterialTheme.typography.bodyLarge,
                                     color = Gray500
                                 )
@@ -122,7 +122,7 @@ fun SearchBar(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Clear,
-                            contentDescription = "Clear",
+                            contentDescription = null,
                             tint = Gray500
                         )
                     }

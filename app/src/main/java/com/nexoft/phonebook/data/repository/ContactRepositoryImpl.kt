@@ -1,5 +1,6 @@
 package com.nexoft.phonebook.data.repository
 
+import android.content.Context
 import com.nexoft.phonebook.data.local.dao.ContactDao
 import com.nexoft.phonebook.data.local.dao.SearchHistoryDao
 import com.nexoft.phonebook.data.local.entity.SearchHistoryEntity
@@ -9,6 +10,8 @@ import com.nexoft.phonebook.data.remote.dto.CreateUserRequest
 import com.nexoft.phonebook.data.remote.dto.UpdateUserRequest
 import com.nexoft.phonebook.domain.model.Contact
 import com.nexoft.phonebook.domain.repository.ContactRepository
+import com.nexoft.phonebook.utils.DeviceContactsHelper
+import com.nexoft.phonebook.utils.PhoneNumberFormatter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -19,12 +22,14 @@ import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
+import dagger.hilt.android.qualifiers.ApplicationContext
 
 @Singleton
 class ContactRepositoryImpl @Inject constructor(
     private val api: ContactsApi,
     private val contactDao: ContactDao,
-    private val searchHistoryDao: SearchHistoryDao
+    private val searchHistoryDao: SearchHistoryDao,
+    @ApplicationContext private val appContext: Context
 ) : ContactRepository {
     
     override suspend fun getAllContacts(): Result<List<Contact>> = withContext(Dispatchers.IO) {
@@ -188,7 +193,18 @@ class ContactRepositoryImpl @Inject constructor(
     }
     
     override suspend fun syncWithDevice() = withContext(Dispatchers.IO) {
-        // This will be implemented in presentation layer with DeviceContactsHelper
-        // Here we just update the database status
+        try {
+            val deviceNumbers = DeviceContactsHelper.getAllDeviceContactPhoneNumbers(appContext)
+            val contacts = contactDao.getAllContacts()
+            contacts.forEach { entity ->
+                val normalized = PhoneNumberFormatter.normalizePhoneNumber(entity.phoneNumber)
+                val inDevice = deviceNumbers.contains(normalized)
+                if (entity.isInDeviceContacts != inDevice) {
+                    contactDao.updateDeviceContactStatus(entity.phoneNumber, inDevice)
+                }
+            }
+        } catch (_: Exception) {
+            // ignore
+        }
     }
 }

@@ -131,8 +131,10 @@ class AddEditContactViewModel @Inject constructor(
     }
 
     private fun onPhoneNumberChange(phoneNumber: String) {
-        // Only allow digits
-        val filtered = phoneNumber.filter { it.isDigit() }
+        // Allow digits and an optional leading '+' for international numbers
+        val filtered = phoneNumber.filterIndexed { index, c ->
+            c.isDigit() || (index == 0 && c == '+')
+        }
         _state.update {
             it.copy(
                 phoneNumber = filtered,
@@ -162,20 +164,20 @@ class AddEditContactViewModel @Inject constructor(
         var hasError = false
 
         if (_state.value.firstName.isBlank()) {
-            _state.update { it.copy(firstNameError = "İsim zorunludur") }
+            _state.update { it.copy(firstNameError = "First name is required") }
             hasError = true
         }
 
         if (_state.value.lastName.isBlank()) {
-            _state.update { it.copy(lastNameError = "Soyisim zorunludur") }
+            _state.update { it.copy(lastNameError = "Last name is required") }
             hasError = true
         }
 
         if (_state.value.phoneNumber.isBlank()) {
-            _state.update { it.copy(phoneNumberError = "Telefon numarası zorunludur") }
+            _state.update { it.copy(phoneNumberError = "Phone number is required") }
             hasError = true
         } else if (_state.value.phoneNumber.length < 10) {
-            _state.update { it.copy(phoneNumberError = "Geçerli bir telefon numarası giriniz") }
+            _state.update { it.copy(phoneNumberError = "Please enter a valid phone number") }
             hasError = true
         }
 
@@ -186,7 +188,8 @@ class AddEditContactViewModel @Inject constructor(
         if (!validateInput()) return
 
         viewModelScope.launch {
-            _state.update { it.copy(isSaving = true, showLottieAnimation = true) }
+            // Start saving; if it's add mode, show lottie; if edit, no lottie
+            _state.update { it.copy(isSaving = true, showLottieAnimation = !_state.value.isEditMode) }
 
             // Upload image if selected
             val imageUrl = _state.value.profileImageFile?.let { file ->
@@ -213,13 +216,8 @@ class AddEditContactViewModel @Inject constructor(
 
             result.fold(
                 onSuccess = {
-                    _state.update {
-                        it.copy(
-                            isSaving = false,
-                            showLottieAnimation = false,
-                            saveSuccess = true
-                        )
-                    }
+                    // Stop lottie if any, flag success
+                    _state.update { it.copy(isSaving = false, showLottieAnimation = false, saveSuccess = true) }
                 },
                 onFailure = { exception ->
                     _state.update {

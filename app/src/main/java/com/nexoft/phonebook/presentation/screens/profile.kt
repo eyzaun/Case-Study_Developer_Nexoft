@@ -4,7 +4,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -15,6 +18,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -29,6 +35,7 @@ import com.nexoft.phonebook.utils.ColorExtractor
 import com.nexoft.phonebook.utils.DeviceContactsHelper
 import com.nexoft.phonebook.utils.shadowWithColor
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import com.nexoft.phonebook.utils.PermissionHelper
 import com.nexoft.phonebook.utils.PhoneNumberFormatter
 import kotlinx.coroutines.launch
@@ -36,7 +43,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 fun ProfileScreen(
-    onNavigateBack: () -> Unit,
+    onNavigateBack: (String?) -> Unit,
     onNavigateToEdit: (String) -> Unit,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
@@ -46,6 +53,8 @@ fun ProfileScreen(
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    var bottomToastMessage by remember { mutableStateOf<String?>(null) }
+    var showBottomToast by remember { mutableStateOf(false) }
 
     val contactPermissions = rememberMultiplePermissionsState(
         permissions = PermissionHelper.CONTACT_PERMISSIONS.toList()
@@ -62,21 +71,17 @@ fun ProfileScreen(
     // Handle delete success
     LaunchedEffect(state.deleteSuccess) {
         if (state.deleteSuccess) {
-            onNavigateBack()
+            onNavigateBack("User is deleted!")
         }
     }
 
-    // Show toast messages
-    LaunchedEffect(state.toastMessage) {
+    // Show bottom toast messages
+    val addedToPhoneText = stringResource(id = com.nexoft.phonebook.R.string.toast_added_to_phone)
+    LaunchedEffect(state.toastMessage, state.savedToDevice) {
         state.toastMessage?.let { message ->
-            scope.launch {
-                snackbarHostState.showSnackbar(
-                    message = message,
-                    duration = SnackbarDuration.Short,
-                    actionLabel = if (state.savedToDevice) "OK" else null
-                )
-                viewModel.onEvent(ProfileEvent.ClearToast)
-            }
+            bottomToastMessage = if (state.savedToDevice) addedToPhoneText else message
+            showBottomToast = true
+            viewModel.onEvent(ProfileEvent.ClearToast)
         }
     }
 
@@ -116,14 +121,13 @@ fun ProfileScreen(
                     dominantColor = state.dominantColor,
                     onSaveToDeviceClick = {
                         if (contactPermissions.allPermissionsGranted) {
-                            scope.launch {
-                                DeviceContactsHelper.saveContactToDevice(context, contact)
-                                viewModel.onEvent(ProfileEvent.OnSaveToDeviceClick)
-                            }
+                            viewModel.onEvent(ProfileEvent.OnSaveToDeviceClick)
                         } else {
                             contactPermissions.launchMultiplePermissionRequest()
                         }
                     },
+                    onChangePhotoClick = { state.contact?.let { onNavigateToEdit(it.id) } },
+                    savedToDevice = state.savedToDevice,
                     modifier = Modifier.padding(paddingValues)
                 )
             }
@@ -149,13 +153,20 @@ fun ProfileScreen(
                 onDismiss = { viewModel.onEvent(ProfileEvent.OnDeleteDismiss) }
             )
         }
+
+        // Bottom toast overlay
+        com.nexoft.phonebook.presentation.components.BottomToast(
+            message = bottomToastMessage ?: "",
+            visible = showBottomToast && !bottomToastMessage.isNullOrBlank(),
+            onDismiss = { showBottomToast = false }
+        )
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ProfileTopBar(
-    onBackClick: () -> Unit,
+    onBackClick: (String?) -> Unit,
     onMenuClick: () -> Unit,
     showMenu: Boolean,
     onEditClick: () -> Unit,
@@ -164,10 +175,10 @@ private fun ProfileTopBar(
 ) {
     TopAppBar(
         navigationIcon = {
-            IconButton(onClick = onBackClick) {
+                IconButton(onClick = { onBackClick(null) }) {
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "Back"
+                    contentDescription = null
                 )
             }
         },
@@ -195,7 +206,7 @@ private fun ProfileTopBar(
                                     modifier = Modifier.size(Dimens.iconSizeSmall)
                                 )
                                 Spacer(modifier = Modifier.width(Dimens.paddingSmall))
-                                Text("Edit", color = Gray900)
+                                Text(stringResource(id = com.nexoft.phonebook.R.string.edit), color = Gray900)
                             }
                         },
                         onClick = onEditClick
@@ -210,7 +221,7 @@ private fun ProfileTopBar(
                                     modifier = Modifier.size(Dimens.iconSizeSmall)
                                 )
                                 Spacer(modifier = Modifier.width(Dimens.paddingSmall))
-                                Text("Delete", color = RedDelete)
+                                Text(stringResource(id = com.nexoft.phonebook.R.string.delete), color = RedDelete)
                             }
                         },
                         onClick = onDeleteClick
@@ -231,6 +242,8 @@ private fun ProfileContent(
     contact: com.nexoft.phonebook.domain.model.Contact,
     dominantColor: Color?,
     onSaveToDeviceClick: () -> Unit,
+    onChangePhotoClick: (() -> Unit)? = null,
+    savedToDevice: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -281,67 +294,162 @@ private fun ProfileContent(
             }
         }
 
+        Spacer(modifier = Modifier.height(Dimens.paddingMedium))
+
+        // Change Photo link
+        Text(
+            text = stringResource(id = com.nexoft.phonebook.R.string.select_photo).replace("Select Photo", "Change Photo"),
+            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+            color = Color(0xFF2F80ED),
+            modifier = Modifier
+                .clickable(enabled = onChangePhotoClick != null) { onChangePhotoClick?.invoke() }
+                .padding(vertical = Dimens.paddingXSmall)
+        )
+
         Spacer(modifier = Modifier.height(Dimens.paddingLarge))
 
-        // Contact Name
-        Text(
-            text = contact.fullName,
-            style = MaterialTheme.typography.headlineMedium,
-            textAlign = TextAlign.Center,
-            color = Gray900
+        // Read-only fields styled like inputs
+        ReadonlyField(
+            value = contact.firstName,
+            placeholder = stringResource(id = com.nexoft.phonebook.R.string.first_name),
+            modifier = Modifier.fillMaxWidth()
         )
 
         Spacer(modifier = Modifier.height(Dimens.paddingSmall))
 
-        // Phone Number
-        Text(
-            text = PhoneNumberFormatter.formatPhoneNumber(contact.phoneNumber),
-            style = MaterialTheme.typography.headlineSmall,
-            textAlign = TextAlign.Center,
-            color = Gray700
+        ReadonlyField(
+            value = contact.lastName,
+            placeholder = stringResource(id = com.nexoft.phonebook.R.string.last_name),
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(Dimens.paddingSmall))
+
+        ReadonlyField(
+            value = PhoneNumberFormatter.formatPhoneNumber(contact.phoneNumber),
+            placeholder = stringResource(id = com.nexoft.phonebook.R.string.phone_number),
+            modifier = Modifier.fillMaxWidth()
         )
 
         Spacer(modifier = Modifier.height(Dimens.paddingXLarge))
 
         // Save to Device Button
-        if (!contact.isInDeviceContacts) {
-            OutlinedButton(
+        val alreadySaved = contact.isInDeviceContacts || savedToDevice
+        if (!alreadySaved) {
+            // Enabled capsule button
+            Surface(
                 onClick = onSaveToDeviceClick,
-                colors = ButtonDefaults.outlinedButtonColors(
-                    containerColor = Color.Transparent,
-                    contentColor = Green500
-                ),
-                border = ButtonDefaults.outlinedButtonBorder.copy(
-                    brush = androidx.compose.ui.graphics.SolidColor(Green500)
-                ),
-                modifier = Modifier.fillMaxWidth(0.8f)
+                shape = RoundedCornerShape(100),
+                tonalElevation = 0.dp,
+                shadowElevation = 0.dp,
+                color = White,
+                border = BorderStroke(Dimens.borderThin, Gray300),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
             ) {
-                Icon(
-                    imageVector = Icons.Default.ContactPhone,
-                    contentDescription = null,
-                    modifier = Modifier.size(Dimens.iconSizeSmall)
-                )
-                Spacer(modifier = Modifier.width(Dimens.paddingSmall))
-                Text(text = "Save to Phone")
+                Row(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.BookmarkBorder,
+                        contentDescription = null,
+                        tint = Gray700
+                    )
+                    Spacer(modifier = Modifier.width(Dimens.paddingSmall))
+                    Text(
+                        text = stringResource(id = com.nexoft.phonebook.R.string.save_to_phone),
+                        color = Gray700,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
             }
         } else {
+            // Disabled capsule button + info row
+            Surface(
+                enabled = false,
+                onClick = {},
+                shape = RoundedCornerShape(100),
+                tonalElevation = 0.dp,
+                shadowElevation = 0.dp,
+                color = Gray100,
+                border = BorderStroke(Dimens.borderThin, Gray200),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.BookmarkBorder,
+                        contentDescription = null,
+                        tint = Gray500
+                    )
+                    Spacer(modifier = Modifier.width(Dimens.paddingSmall))
+                    Text(
+                        text = stringResource(id = com.nexoft.phonebook.R.string.save_to_phone),
+                        color = Gray500,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(Dimens.paddingSmall))
+
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(Dimens.paddingMedium)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = Dimens.paddingSmall)
             ) {
                 Icon(
-                    imageVector = Icons.Default.CheckCircle,
+                    imageVector = Icons.Default.Info,
                     contentDescription = null,
-                    tint = Green500,
+                    tint = Gray600,
                     modifier = Modifier.size(Dimens.iconSizeSmall)
                 )
                 Spacer(modifier = Modifier.width(Dimens.paddingSmall))
                 Text(
-                    text = "Saved in device contacts",
+                    text = stringResource(id = com.nexoft.phonebook.R.string.saved_in_device),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Green500
+                    color = Gray700
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun ReadonlyField(
+    value: String,
+    placeholder: String,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        shape = RoundedCornerShape(Dimens.radiusLarge),
+        color = White,
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp,
+        border = BorderStroke(Dimens.borderThin, Gray200),
+        modifier = modifier
+            .height(48.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = Dimens.paddingMedium),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = if (value.isNotBlank()) value else placeholder,
+                color = if (value.isNotBlank()) Gray900 else Gray400,
+                style = MaterialTheme.typography.bodyLarge
+            )
         }
     }
 }
@@ -373,20 +481,11 @@ private fun DeleteConfirmationBottomSheet(
 
             Spacer(modifier = Modifier.height(Dimens.paddingMedium))
 
-            Text(
-                text = "Delete Contact",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Medium
-            )
+            Text(text = stringResource(id = com.nexoft.phonebook.R.string.confirm_delete_title), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Medium)
 
             Spacer(modifier = Modifier.height(Dimens.paddingSmall))
 
-            Text(
-                text = "Are you sure you want to delete $contactName?",
-                style = MaterialTheme.typography.bodyLarge,
-                color = Gray700,
-                textAlign = TextAlign.Center
-            )
+            Text(text = stringResource(id = com.nexoft.phonebook.R.string.confirm_delete_message), style = MaterialTheme.typography.bodyLarge, color = Gray700, textAlign = TextAlign.Center)
 
             Spacer(modifier = Modifier.height(Dimens.paddingLarge))
 
@@ -398,7 +497,7 @@ private fun DeleteConfirmationBottomSheet(
                     onClick = onDismiss,
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text("Cancel")
+                    Text(stringResource(id = com.nexoft.phonebook.R.string.no))
                 }
 
                 Button(
@@ -408,7 +507,7 @@ private fun DeleteConfirmationBottomSheet(
                     ),
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text("Delete")
+                    Text(stringResource(id = com.nexoft.phonebook.R.string.yes))
                 }
             }
 

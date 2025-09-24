@@ -80,11 +80,17 @@ class ProfileViewModel @Inject constructor(
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
 
+            // First, sync local cache with current device contacts to ensure flags are up-to-date
+            runCatching { repository.syncWithDevice() }
+
             repository.getContact(contactId).fold(
                 onSuccess = { contact ->
-                    _state.update {
-                        it.copy(
-                            contact = contact,
+                    _state.update { current ->
+                        val effective = if (current.savedToDevice) {
+                            contact.copy(isInDeviceContacts = true)
+                        } else contact
+                        current.copy(
+                            contact = effective,
                             isLoading = false
                         )
                     }
@@ -131,7 +137,7 @@ class ProfileViewModel @Inject constructor(
                             it.copy(
                                 showDeleteDialog = false,
                                 deleteSuccess = true,
-                                toastMessage = "${contact.fullName} silindi"
+                                toastMessage = "${contact.fullName} deleted"
                             )
                         }
                     },
@@ -151,14 +157,26 @@ class ProfileViewModel @Inject constructor(
     private fun saveToDevice() {
         viewModelScope.launch {
             _state.value.contact?.let { contact ->
+                // Guard: if already saved, do nothing
+                if (contact.isInDeviceContacts || _state.value.savedToDevice) {
+                    // Optionally, surface the informational toast again
+                    _state.update {
+                        it.copy(
+                            toastMessage = null // no new toast; UI already shows disabled state + info row
+                        )
+                    }
+                    return@launch
+                }
                 saveToDeviceContactsUseCase(contact).fold(
                     onSuccess = {
                         _state.update {
                             it.copy(
                                 savedToDevice = true,
-                                toastMessage = "${contact.fullName} rehbere kaydedildi"
+                                toastMessage = "${contact.fullName} saved to device",
+                                contact = it.contact?.copy(isInDeviceContacts = true)
                             )
                         }
+                        // No immediate reload; local state already reflects saved status.
                     },
                     onFailure = { exception ->
                         _state.update {

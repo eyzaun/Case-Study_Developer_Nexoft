@@ -39,8 +39,8 @@ fun EmptyState(
 
         Text(
             text = when (type) {
-                EmptyStateType.NO_CONTACTS -> "Henüz kişi eklenmemiş"
-                EmptyStateType.NO_SEARCH_RESULTS -> "Sonuç bulunamadı"
+                EmptyStateType.NO_CONTACTS -> androidx.compose.ui.res.stringResource(id = com.nexoft.phonebook.R.string.no_contacts)
+                EmptyStateType.NO_SEARCH_RESULTS -> androidx.compose.ui.res.stringResource(id = com.nexoft.phonebook.R.string.no_results)
             },
             style = MaterialTheme.typography.bodyLarge,
             color = Gray700,
@@ -50,7 +50,15 @@ fun EmptyState(
         if (type == EmptyStateType.NO_CONTACTS) {
             Spacer(modifier = Modifier.height(Dimens.paddingSmall))
             Text(
-                text = "Kişi eklemek için + butonuna tıklayın",
+                text = androidx.compose.ui.res.stringResource(id = com.nexoft.phonebook.R.string.no_contacts_subtitle),
+                style = MaterialTheme.typography.bodyMedium,
+                color = Gray500,
+                textAlign = TextAlign.Center
+            )
+        } else if (type == EmptyStateType.NO_SEARCH_RESULTS) {
+            Spacer(modifier = Modifier.height(Dimens.paddingSmall))
+            Text(
+                text = androidx.compose.ui.res.stringResource(id = com.nexoft.phonebook.R.string.no_results_subtitle),
                 style = MaterialTheme.typography.bodyMedium,
                 color = Gray500,
                 textAlign = TextAlign.Center

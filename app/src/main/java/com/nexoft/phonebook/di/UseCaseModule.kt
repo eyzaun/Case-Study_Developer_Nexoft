@@ -1,11 +1,13 @@
 package com.nexoft.phonebook.di
 
+import android.content.Context
 import com.nexoft.phonebook.domain.repository.ContactRepository
 import com.nexoft.phonebook.domain.usecase.*
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ViewModelComponent
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.android.scopes.ViewModelScoped
 
 @Module
@@ -62,8 +64,11 @@ object UseCaseModule {
 
     @Provides
     @ViewModelScoped
-    fun provideSaveToDeviceContactsUseCase(): SaveToDeviceContactsUseCase {
-        return SaveToDeviceContactsUseCase()
+    fun provideSaveToDeviceContactsUseCase(
+        @ApplicationContext appContext: Context,
+        repository: ContactRepository
+    ): SaveToDeviceContactsUseCase {
+        return SaveToDeviceContactsUseCase(appContext, repository)
     }
 
     @Provides

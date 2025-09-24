@@ -1,12 +1,24 @@
 package com.nexoft.phonebook.domain.usecase
 
+import android.content.Context
 import com.nexoft.phonebook.domain.model.Contact
+import com.nexoft.phonebook.domain.repository.ContactRepository
+import com.nexoft.phonebook.utils.DeviceContactsHelper
+import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
-class SaveToDeviceContactsUseCase @Inject constructor() {
+class SaveToDeviceContactsUseCase @Inject constructor(
+    @ApplicationContext private val appContext: Context,
+    private val repository: ContactRepository
+) {
     suspend operator fun invoke(contact: Contact): Result<Unit> {
-        // Bu use case presentation layer'da DeviceContactsHelper ile implement edilecek
-        // Domain layer'da sadece interface tanımlaması yaptım
-        return Result.success(Unit)
+        return try {
+            DeviceContactsHelper.saveContactToDevice(appContext, contact)
+            // After saving, resync device flags to persist isInDeviceContacts locally
+            repository.syncWithDevice()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 }
