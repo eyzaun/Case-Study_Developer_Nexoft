@@ -1,5 +1,9 @@
 # Phone Book (Jetpack Compose)
 
+[Download APK](https://github.com/eyzaun/Case-Study_Developer_Nexoft/releases/latest/download/app-release.apk)
+
+Not: Release henüz oluşmadıysa bu bağlantı tag push sonrası otomatik olarak aktif olacaktır.
+
 Simple phone book app built with Kotlin + Jetpack Compose following Clean Architecture. It integrates with the given REST API to manage contacts and supports saving a contact to the device address book.
 
 ## Features
@@ -20,6 +24,10 @@ Simple phone book app built with Kotlin + Jetpack Compose following Clean Archit
 - Minimum setup: open project and build
 - A debug APK can be generated via Gradle task `:app:assembleDebug`
 
+## Download (GitHub Releases)
+- Son sürüm APK: https://github.com/eyzaun/Case-Study_Developer_Nexoft/releases/latest/download/app-release.apk
+	- Bu link, GitHub Actions tarafından tag atıldığında otomatik yayınlanan release’e işaret eder.
+
 ## API configuration
 - Base URL: `http://146.59.52.68:11235/`
 - The app expects an `ApiKey` header per API spec. Update your key in `NetworkModule.kt` if needed.
@@ -27,9 +35,6 @@ Simple phone book app built with Kotlin + Jetpack Compose following Clean Archit
 ## Notes
 - Phone numbers are normalized to match device contacts; saving to device updates the local flag to keep UI consistent.
 - Design accents use a blue brand color and follow the provided Figma screens.
-
-## Privacy Policy
-- See docs/privacy-policy.md
 
 ## License
 This repository is for case study purposes.
