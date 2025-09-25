@@ -86,12 +86,13 @@ class ProfileViewModel @Inject constructor(
             repository.getContact(contactId).fold(
                 onSuccess = { contact ->
                     _state.update { current ->
-                        val effective = if (current.savedToDevice) {
-                            contact.copy(isInDeviceContacts = true)
-                        } else contact
+                        // If we previously saved in this session, keep it; otherwise trust the freshly synced local flag
+                        val effective = if (current.savedToDevice) contact.copy(isInDeviceContacts = true) else contact
                         current.copy(
                             contact = effective,
-                            isLoading = false
+                            isLoading = false,
+                            // If local reports saved, persist the savedToDevice UI flag too
+                            savedToDevice = effective.isInDeviceContacts || current.savedToDevice
                         )
                     }
                 },

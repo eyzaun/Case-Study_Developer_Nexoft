@@ -8,6 +8,11 @@ val Green400 = Color(0xFF66BB6A)
 val Green600 = Color(0xFF43A047)
 val Green50 = Color(0xFFE8F5E9)
 
+// Brand Blue (primary accent)
+val Blue500 = Color(0xFF2F80ED)
+val Blue600 = Color(0xFF2B75D6)
+val Blue50 = Color(0xFFEAF2FE)
+
 // Error Colors
 val RedDelete = Color(0xFFE53935)
 val RedDark = Color(0xFFD32F2F)

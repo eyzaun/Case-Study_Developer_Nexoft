@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.ui.text.style.TextAlign
@@ -102,22 +103,25 @@ fun ContactsScreen(
                 title = {
                     Text(text = stringResource(id = com.nexoft.phonebook.R.string.contacts_title), style = MaterialTheme.typography.titleLarge)
                 },
+                actions = {
+                    // Small circular '+' in top-right
+                    androidx.compose.material3.FilledIconButton(
+                        onClick = onNavigateToAddContact,
+                        modifier = Modifier.size(40.dp),
+                        colors = IconButtonDefaults.filledIconButtonColors(
+                            containerColor = Blue500,
+                            contentColor = White
+                        )
+                    ) {
+                        Icon(imageVector = Icons.Default.Add, contentDescription = stringResource(id = com.nexoft.phonebook.R.string.add_contact))
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = White,
                     titleContentColor = Gray900
                 ),
                 modifier = Modifier.background(White)
             )
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = onNavigateToAddContact,
-                containerColor = Green500,
-                contentColor = White,
-                modifier = Modifier.size(Dimens.fabSize)
-            ) {
-                Icon(imageVector = Icons.Default.Add, contentDescription = stringResource(id = com.nexoft.phonebook.R.string.add_contact))
-            }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = White
@@ -156,7 +160,7 @@ fun ContactsScreen(
                             modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
                         ) {
-                            CircularProgressIndicator(color = Green500)
+                            CircularProgressIndicator(color = Blue500)
                         }
                     }
                     state.contacts.isEmpty() -> {
@@ -181,21 +185,9 @@ fun ContactsScreen(
         }
 
         if (state.showDeleteConfirm) {
-            AlertDialog(
-                onDismissRequest = { viewModel.onEvent(ContactsEvent.DismissDeleteConfirm) },
-                icon = { Icon(imageVector = Icons.Default.Delete, contentDescription = null, tint = RedDelete) },
-                title = { Text(stringResource(id = com.nexoft.phonebook.R.string.confirm_delete_title)) },
-                text = { Text(stringResource(id = com.nexoft.phonebook.R.string.confirm_delete_message)) },
-                confirmButton = {
-                    TextButton(onClick = { viewModel.onEvent(ContactsEvent.ConfirmDelete(true)) }) {
-                        Text(stringResource(id = com.nexoft.phonebook.R.string.yes))
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { viewModel.onEvent(ContactsEvent.ConfirmDelete(false)) }) {
-                        Text(stringResource(id = com.nexoft.phonebook.R.string.no))
-                    }
-                }
+            DeleteConfirmSheet(
+                onConfirm = { viewModel.onEvent(ContactsEvent.ConfirmDelete(true)) },
+                onDismiss = { viewModel.onEvent(ContactsEvent.ConfirmDelete(false)) }
             )
         }
 
@@ -235,6 +227,59 @@ private fun ContactsList(
                     onDeleteClick = { onDeleteClick(contact) }
                 )
             }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun DeleteConfirmSheet(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        containerColor = White,
+        shape = com.nexoft.phonebook.ui.theme.Shapes.bottomSheetShape
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(Dimens.paddingLarge),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = stringResource(id = com.nexoft.phonebook.R.string.confirm_delete_title),
+                style = MaterialTheme.typography.titleLarge,
+                color = Gray900
+            )
+            Spacer(modifier = Modifier.height(Dimens.paddingSmall))
+            Text(
+                text = stringResource(id = com.nexoft.phonebook.R.string.confirm_delete_message),
+                style = MaterialTheme.typography.bodyLarge,
+                color = Gray700,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(Dimens.paddingLarge))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(Dimens.paddingMedium)
+            ) {
+                OutlinedButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(stringResource(id = com.nexoft.phonebook.R.string.no))
+                }
+                Button(
+                    onClick = onConfirm,
+                    colors = ButtonDefaults.buttonColors(containerColor = Gray900, contentColor = White),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(stringResource(id = com.nexoft.phonebook.R.string.yes))
+                }
+            }
+            Spacer(modifier = Modifier.height(Dimens.paddingLarge))
         }
     }
 }

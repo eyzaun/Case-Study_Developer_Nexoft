@@ -37,12 +37,17 @@ class ContactRepositoryImpl @Inject constructor(
             val response = api.getAllContacts()
             if (response.isSuccessful && response.body()?.success == true) {
                 val contacts = response.body()?.data?.users?.toDomainModels() ?: emptyList()
-                
-                // Cache to local database
+
+                // Cache to local database (fresh snapshot)
                 contactDao.deleteAllContacts()
                 contactDao.insertContacts(contacts.toEntities())
-                
-                Result.success(contacts)
+
+                // Re-sync device flags so isInDeviceContacts persists after refresh
+                syncWithDevice()
+
+                // Return contacts with device flags from DB
+                val merged = contactDao.getAllContacts().toDomainModels()
+                Result.success(merged)
             } else {
                 // Fallback to local data
                 val localContacts = contactDao.getAllContacts().toDomainModels()
@@ -67,10 +72,15 @@ class ContactRepositoryImpl @Inject constructor(
         try {
             val response = api.getContact(id)
             if (response.isSuccessful && response.body()?.success == true) {
-                val contact = response.body()?.data?.toDomainModel()
-                contact?.let {
-                    contactDao.insertContact(it.toEntity())
-                    Result.success(it)
+                val remote = response.body()?.data?.toDomainModel()
+                remote?.let { fresh ->
+                    // Preserve existing isInDeviceContacts flag if present locally (possibly updated via sync)
+                    val existing = contactDao.getContact(id)
+                    val merged = if (existing != null) {
+                        fresh.copy(isInDeviceContacts = existing.isInDeviceContacts)
+                    } else fresh
+                    contactDao.insertContact(merged.toEntity())
+                    Result.success(merged)
                 } ?: Result.failure(Exception("Contact not found"))
             } else {
                 // Fallback to local data
@@ -124,9 +134,13 @@ class ContactRepositoryImpl @Inject constructor(
             val response = api.updateContact(id, request)
             if (response.isSuccessful && response.body()?.success == true) {
                 val updatedContact = response.body()?.data?.toDomainModel()
-                updatedContact?.let {
-                    contactDao.updateContact(it.toEntity())
-                    Result.success(it)
+                updatedContact?.let { fresh ->
+                    val existing = contactDao.getContact(id)
+                    val merged = if (existing != null) {
+                        fresh.copy(isInDeviceContacts = existing.isInDeviceContacts)
+                    } else fresh
+                    contactDao.updateContact(merged.toEntity())
+                    Result.success(merged)
                 } ?: Result.failure(Exception("Failed to update contact"))
             } else {
                 Result.failure(Exception(response.body()?.messages?.firstOrNull() ?: "Failed to update contact"))

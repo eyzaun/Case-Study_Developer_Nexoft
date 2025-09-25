@@ -73,7 +73,7 @@ fun ContactListItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             ActionButton(
-                background = Green500,
+                background = Blue500,
                 icon = Icons.Default.Edit,
                 contentDescription = "Edit",
                 buttonWidth = actionButtonWidth
@@ -194,7 +194,7 @@ private fun ContactContent(
                 Icon(
                     imageVector = Icons.Default.Phone,
                     contentDescription = "In device contacts",
-                    tint = Green500,
+                    tint = Blue500,
                     modifier = Modifier.size(Dimens.iconSizeSmall)
                 )
             }

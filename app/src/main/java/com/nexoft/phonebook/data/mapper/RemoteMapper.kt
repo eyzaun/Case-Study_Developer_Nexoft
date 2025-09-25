@@ -11,6 +11,7 @@ fun UserResponse.toDomainModel(): Contact {
         phoneNumber = phoneNumber,
         profileImageUrl = profileImageUrl,
         createdAt = createdAt,
+        // The device flag will be merged against local cache in the repository
         isInDeviceContacts = false
     )
 }

@@ -99,7 +99,7 @@ fun SearchBar(
                         }
                     ),
                     singleLine = true,
-                    cursorBrush = SolidColor(Green500),
+                    cursorBrush = SolidColor(Blue500),
                     decorationBox = { innerTextField ->
                         Box {
                             if (query.isEmpty()) {
@@ -159,7 +159,7 @@ fun SearchBar(
                     Text(
                         text = "Clear All",
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFF2F80ED),
+                        color = Blue500,
                         modifier = Modifier.clickable { onClearAll() }
                     )
                 }

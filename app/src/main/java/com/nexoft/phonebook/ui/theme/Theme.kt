@@ -9,20 +9,20 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 
 private val LightColorScheme = lightColorScheme(
-    primary = Green500,
+    primary = Blue500,
     onPrimary = White,
-    primaryContainer = Green50,
-    onPrimaryContainer = Green600,
+    primaryContainer = Blue50,
+    onPrimaryContainer = Blue600,
 
     secondary = Gray700,
     onSecondary = White,
     secondaryContainer = Gray200,
     onSecondaryContainer = Gray900,
 
-    tertiary = Green400,
+    tertiary = Blue500,
     onTertiary = White,
-    tertiaryContainer = Green50,
-    onTertiaryContainer = Green600,
+    tertiaryContainer = Blue50,
+    onTertiaryContainer = Blue600,
 
     error = RedDelete,
     onError = White,
@@ -52,11 +52,11 @@ data class PhoneBookColors(
     val divider: Color = Gray300,
     val textSecondary: Color = Gray600,
     val textHint: Color = Gray500,
-    val toastBackground: Color = ToastGreen,
-    val swipeEditBackground: Color = Green500,
+    val toastBackground: Color = Blue500,
+    val swipeEditBackground: Color = Blue500,
     val swipeDeleteBackground: Color = RedDelete,
     val contactGroupHeader: Color = Gray700,
-    val deviceContactIndicator: Color = Green500
+    val deviceContactIndicator: Color = Blue500
 )
 
 @Composable

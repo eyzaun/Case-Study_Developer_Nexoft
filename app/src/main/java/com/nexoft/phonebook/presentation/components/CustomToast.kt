@@ -24,7 +24,7 @@ fun CustomToast(
             .fillMaxWidth()
             .padding(horizontal = Dimens.paddingMedium)
             .background(
-                color = ToastGreen,
+                color = Blue500,
                 shape = RoundedCornerShape(Dimens.radiusSmall)
             )
             .padding(Dimens.paddingMedium)

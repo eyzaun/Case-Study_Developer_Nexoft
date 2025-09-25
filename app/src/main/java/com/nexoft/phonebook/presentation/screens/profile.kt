@@ -112,7 +112,7 @@ fun ProfileScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(color = Green500)
+                    CircularProgressIndicator(color = Blue500)
                 }
             }
             contact != null -> {
@@ -202,7 +202,7 @@ private fun ProfileTopBar(
                                 Icon(
                                     imageVector = Icons.Default.Edit,
                                     contentDescription = null,
-                                    tint = Green500,
+                                    tint = Blue500,
                                     modifier = Modifier.size(Dimens.iconSizeSmall)
                                 )
                                 Spacer(modifier = Modifier.width(Dimens.paddingSmall))
@@ -255,7 +255,7 @@ private fun ProfileContent(
     ) {
         Spacer(modifier = Modifier.height(Dimens.paddingLarge))
 
-        // Profile Image with Shadow
+        // Profile Image with Shadow and small '+' overlay
         Box(
             modifier = Modifier
                 .size(Dimens.avatarSizeLarge)
@@ -292,15 +292,17 @@ private fun ProfileContent(
                     color = Gray700
                 )
             }
+
+            // '+' overlay removed per request
         }
 
         Spacer(modifier = Modifier.height(Dimens.paddingMedium))
 
         // Change Photo link
         Text(
-            text = stringResource(id = com.nexoft.phonebook.R.string.select_photo).replace("Select Photo", "Change Photo"),
+            text = stringResource(id = com.nexoft.phonebook.R.string.change_photo),
             style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
-            color = Color(0xFF2F80ED),
+            color = Blue500,
             modifier = Modifier
                 .clickable(enabled = onChangePhotoClick != null) { onChangePhotoClick?.invoke() }
                 .padding(vertical = Dimens.paddingXSmall)

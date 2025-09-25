@@ -15,7 +15,7 @@ import com.airbnb.lottie.compose.*
 import com.nexoft.phonebook.R
 import com.nexoft.phonebook.ui.theme.Dimens
 import com.nexoft.phonebook.ui.theme.Gray700
-import com.nexoft.phonebook.ui.theme.Green500
+import com.nexoft.phonebook.ui.theme.Blue500
 import com.nexoft.phonebook.ui.theme.White
 
 @Composable
@@ -59,7 +59,7 @@ fun AddSuccessScreen(onFinish: () -> Unit) {
             Text(
                 text = androidx.compose.ui.res.stringResource(id = R.string.add_success_title),
                 style = MaterialTheme.typography.headlineSmall,
-                color = Green500,
+                color = Blue500,
                 textAlign = TextAlign.Center
             )
 

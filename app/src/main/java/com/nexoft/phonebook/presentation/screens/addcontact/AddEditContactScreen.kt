@@ -24,6 +24,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -88,7 +89,7 @@ fun AddEditContactScreen(
         }
     }
 
-    // Handle save success -> briefly show toast and then navigate back
+    // Handle save success -> navigate back with message
     LaunchedEffect(state.saveSuccess) {
         if (state.saveSuccess) {
             val message = if (state.isEditMode) updatedText else addedText
@@ -98,29 +99,45 @@ fun AddEditContactScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(text = if (state.isEditMode) stringResource(id = R.string.edit_contact) else stringResource(id = R.string.new_contact), style = MaterialTheme.typography.titleLarge)
-                },
-                navigationIcon = {
-                    IconButton(onClick = { onNavigateBack("") }) {
-                        Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = null
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = White,
-                    titleContentColor = Gray900
+            if (state.isEditMode) {
+                TopAppBar(
+                    title = { Text(text = stringResource(id = R.string.edit_contact), style = MaterialTheme.typography.titleLarge) },
+                    navigationIcon = {
+                        TextButton(onClick = { onNavigateBack("") }) {
+                            Text(text = stringResource(id = R.string.cancel), color = Blue500)
+                        }
+                    },
+                    actions = {
+                        val enabled = canSave(state)
+                        TextButton(onClick = { viewModel.onEvent(AddEditContactEvent.OnSaveClick) }, enabled = enabled) {
+                            Text(text = stringResource(id = R.string.done), color = if (enabled) Blue500 else Gray400)
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = White,
+                        titleContentColor = Gray900
+                    )
                 )
-            )
+            } else {
+                TopAppBar(
+                    title = { Text(text = stringResource(id = R.string.new_contact), style = MaterialTheme.typography.titleLarge) },
+                    navigationIcon = {
+                        IconButton(onClick = { onNavigateBack("") }) {
+                            Icon(imageVector = Icons.Default.Close, contentDescription = null)
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = White,
+                        titleContentColor = Gray900
+                    )
+                )
+            }
         },
         floatingActionButton = {
-            if (canSave(state)) {
+            if (!state.isEditMode && canSave(state)) {
                 FloatingActionButton(
                     onClick = { viewModel.onEvent(AddEditContactEvent.OnSaveClick) },
-                    containerColor = Green500,
+                    containerColor = Blue500,
                     contentColor = White
                 ) {
                     Icon(imageVector = Icons.Default.Check, contentDescription = null)
@@ -146,8 +163,7 @@ fun AddEditContactScreen(
                     modifier = Modifier
                         .size(Dimens.avatarSizeLarge)
                         .clip(CircleShape)
-                        .background(Gray200)
-                        .clickable { viewModel.onEvent(AddEditContactEvent.OnImagePickerClick) },
+                        .background(Gray200),
                     contentAlignment = Alignment.Center
                 ) {
                     when {
@@ -180,6 +196,16 @@ fun AddEditContactScreen(
 
                 Spacer(modifier = Modifier.height(Dimens.paddingXLarge))
 
+                // Change Photo link under avatar
+                Text(
+                    text = stringResource(id = R.string.change_photo),
+                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                    color = Blue500,
+                    modifier = Modifier
+                        .clickable { viewModel.onEvent(AddEditContactEvent.OnImagePickerClick) }
+                        .padding(vertical = Dimens.paddingXSmall)
+                )
+
                 // First Name Field
                 OutlinedTextField(
                     value = state.firstName,
@@ -195,7 +221,7 @@ fun AddEditContactScreen(
                     isError = state.firstNameError != null,
                     supportingText = state.firstNameError?.let { { Text(it) } },
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Green500,
+                        focusedBorderColor = Blue500,
                         unfocusedBorderColor = Gray300,
                         errorBorderColor = RedDelete
                     ),
@@ -219,7 +245,7 @@ fun AddEditContactScreen(
                     isError = state.lastNameError != null,
                     supportingText = state.lastNameError?.let { { Text(it) } },
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Green500,
+                        focusedBorderColor = Blue500,
                         unfocusedBorderColor = Gray300,
                         errorBorderColor = RedDelete
                     ),
@@ -244,7 +270,7 @@ fun AddEditContactScreen(
                     isError = state.phoneNumberError != null,
                     supportingText = state.phoneNumberError?.let { { Text(it) } },
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Green500,
+                        focusedBorderColor = Blue500,
                         unfocusedBorderColor = Gray300,
                         errorBorderColor = RedDelete
                     ),

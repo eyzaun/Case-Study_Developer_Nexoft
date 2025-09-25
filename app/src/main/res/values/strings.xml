@@ -4,6 +4,7 @@
     <!-- Common -->
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
+    <string name="done">Done</string>
     <string name="delete">Delete</string>
     <string name="edit">Edit</string>
     <string name="search_placeholder">Search by name</string>
@@ -31,6 +32,7 @@
     <string name="phone_required">Phone number is required</string>
     <string name="phone_invalid">Please enter a valid phone number</string>
     <string name="select_photo">Select Photo</string>
+    <string name="change_photo">Change Photo</string>
     <string name="take_photo">Take Photo</string>
     <string name="choose_from_gallery">Choose from Gallery</string>
     <!-- Profile -->

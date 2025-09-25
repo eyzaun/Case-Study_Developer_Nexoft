@@ -24,7 +24,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.nexoft.phonebook.ui.theme.Dimens
-import com.nexoft.phonebook.ui.theme.Green500
+import com.nexoft.phonebook.ui.theme.Blue500
 import com.nexoft.phonebook.ui.theme.White
 import kotlinx.coroutines.delay
 
@@ -67,11 +67,11 @@ fun BottomToast(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(Dimens.paddingMedium)
                 ) {
-                    // Green circular icon
+                    // Brand circular icon
                     Box(
                         modifier = Modifier
                             .size(28.dp)
-                            .background(Green500, CircleShape),
+                            .background(Blue500, CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
@@ -85,7 +85,7 @@ fun BottomToast(
                     Text(
                         text = message,
                         style = MaterialTheme.typography.bodyLarge,
-                        color = Green500,
+                        color = Blue500,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
