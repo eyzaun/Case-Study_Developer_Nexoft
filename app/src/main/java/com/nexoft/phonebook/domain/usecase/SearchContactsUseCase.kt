@@ -28,4 +28,8 @@ class SearchContactsUseCase @Inject constructor(
     suspend fun getSearchHistory(): List<String> {
         return repository.getSearchHistory()
     }
+
+    suspend fun clearAllHistory() {
+        repository.clearSearchHistory()
+    }
 }

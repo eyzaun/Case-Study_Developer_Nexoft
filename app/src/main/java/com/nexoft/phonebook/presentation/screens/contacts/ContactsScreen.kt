@@ -136,6 +136,8 @@ fun ContactsScreen(
                 onSearchClick = { viewModel.onEvent(ContactsEvent.OnSearchClick) },
                 onSearchDismiss = { viewModel.onEvent(ContactsEvent.OnSearchDismiss) },
                 onHistoryItemClick = { viewModel.onEvent(ContactsEvent.OnSearchHistoryClick(it)) },
+                onClearAll = { viewModel.onEvent(ContactsEvent.OnClearAllHistory) },
+                onSearchConfirm = { viewModel.onEvent(ContactsEvent.OnSearchConfirm) },
                 isActive = state.isSearchActive,
                 modifier = Modifier.padding(
                     horizontal = Dimens.paddingMedium,

@@ -38,6 +38,8 @@ sealed class ContactsEvent {
     object OnAddContactClick : ContactsEvent()
     object ClearError : ContactsEvent()
     object ClearToast : ContactsEvent()
+    object OnClearAllHistory : ContactsEvent()
+    object OnSearchConfirm : ContactsEvent()
 }
 
 @HiltViewModel
@@ -73,6 +75,8 @@ class ContactsViewModel @Inject constructor(
             is ContactsEvent.OnAddContactClick -> { /* Handled by navigation */ }
             is ContactsEvent.ClearError -> clearError()
             is ContactsEvent.ClearToast -> clearToast()
+            is ContactsEvent.OnClearAllHistory -> clearAllHistory()
+            is ContactsEvent.OnSearchConfirm -> onSearchConfirm()
         }
     }
 
@@ -212,6 +216,27 @@ class ContactsViewModel @Inject constructor(
     private fun onSearchHistoryClick(query: String) {
         _state.update { it.copy(searchQuery = query) }
         onSearchQueryChange(query)
+    }
+
+    private fun onSearchConfirm() {
+        viewModelScope.launch {
+            val query = _state.value.searchQuery
+            if (query.isNotBlank()) {
+                searchContactsUseCase.saveQuery(query)
+            }
+            // Hide suggestions and keep query to show results
+            _state.update { it.copy(isSearchActive = false) }
+            // Trigger immediate search results
+            onSearchQueryChange(query)
+        }
+    }
+
+    private fun clearAllHistory() {
+        viewModelScope.launch {
+            searchContactsUseCase.clearAllHistory()
+            val updated = searchContactsUseCase.getSearchHistory()
+            _state.update { it.copy(searchHistory = updated) }
+        }
     }
 
     // Old direct delete removed in favor of confirmation flow

@@ -22,6 +22,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
@@ -35,6 +36,8 @@ fun SearchBar(
     onSearchClick: () -> Unit,
     onSearchDismiss: () -> Unit,
     onHistoryItemClick: (String) -> Unit,
+    onClearAll: () -> Unit,
+    onSearchConfirm: () -> Unit,
     isActive: Boolean,
     modifier: Modifier = Modifier
 ) {
@@ -92,6 +95,7 @@ fun SearchBar(
                     keyboardActions = KeyboardActions(
                         onSearch = {
                             focusManager.clearFocus()
+                            onSearchConfirm()
                         }
                     ),
                     singleLine = true,
@@ -139,6 +143,26 @@ fun SearchBar(
                 colors = CardDefaults.cardColors(containerColor = White),
                 elevation = CardDefaults.cardElevation(defaultElevation = Dimens.elevationSmall)
             ) {
+                // Header row: SEARCH HISTORY  |  Clear All
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = Dimens.paddingMedium, vertical = Dimens.paddingSmall),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "SEARCH HISTORY",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Gray500
+                    )
+                    Spacer(modifier = Modifier.weight(1f))
+                    Text(
+                        text = "Clear All",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color(0xFF2F80ED),
+                        modifier = Modifier.clickable { onClearAll() }
+                    )
+                }
                 LazyColumn(
                     modifier = Modifier.fillMaxWidth(),
                     contentPadding = PaddingValues(vertical = Dimens.paddingSmall)
