@@ -37,8 +37,8 @@ jobs:
           yes | sudo ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --licenses || true
           yes | ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager \
             "platform-tools" \
-            "platforms;android-34" \
-            "build-tools;34.0.0"
+            "platforms;android-35" \
+            "build-tools;35.0.0"
 
       - name: Build Debug APK
         run: ./gradlew :app:assembleDebug -x lint
@@ -77,8 +77,8 @@ jobs:
           yes | sudo ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --licenses || true
           yes | ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager \
             "platform-tools" \
-            "platforms;android-34" \
-            "build-tools;34.0.0"
+            "platforms;android-35" \
+            "build-tools;35.0.0"
 
       - name: Build Release APK
         run: ./gradlew :app:assembleRelease -x lint
