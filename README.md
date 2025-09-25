@@ -28,5 +28,8 @@ Simple phone book app built with Kotlin + Jetpack Compose following Clean Archit
 - Phone numbers are normalized to match device contacts; saving to device updates the local flag to keep UI consistent.
 - Design accents use a blue brand color and follow the provided Figma screens.
 
+## Privacy Policy
+- See docs/privacy-policy.md
+
 ## License
 This repository is for case study purposes.
