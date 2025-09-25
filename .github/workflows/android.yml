@@ -30,6 +30,17 @@ jobs:
       - name: Set up Gradle cache
         uses: gradle/actions/setup-gradle@v4
 
+      - name: Prepare Android debug keystore (CI)
+        run: |
+          mkdir -p "$HOME/.android"
+          mkdir -p "$HOME/.config/.android"
+          if [ ! -f "$HOME/.android/debug.keystore" ]; then
+            keytool -genkey -v -keystore "$HOME/.android/debug.keystore" \
+              -storepass android -alias androiddebugkey -keypass android \
+              -dname "CN=Android Debug,O=Android,C=US" -keyalg RSA -keysize 2048 -validity 10000
+          fi
+          cp "$HOME/.android/debug.keystore" "$HOME/.config/.android/debug.keystore" || true
+
       - name: Install Android SDK components
         run: |
           sudo apt-get update
@@ -69,6 +80,17 @@ jobs:
 
       - name: Set up Gradle cache
         uses: gradle/actions/setup-gradle@v4
+
+      - name: Prepare Android debug keystore (CI)
+        run: |
+          mkdir -p "$HOME/.android"
+          mkdir -p "$HOME/.config/.android"
+          if [ ! -f "$HOME/.android/debug.keystore" ]; then
+            keytool -genkey -v -keystore "$HOME/.android/debug.keystore" \
+              -storepass android -alias androiddebugkey -keypass android \
+              -dname "CN=Android Debug,O=Android,C=US" -keyalg RSA -keysize 2048 -validity 10000
+          fi
+          cp "$HOME/.android/debug.keystore" "$HOME/.config/.android/debug.keystore" || true
 
       - name: Install Android SDK components
         run: |
